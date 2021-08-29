@@ -1,4 +1,4 @@
-{% extends 'dashboard/base.html' %} 
+{% extends 'base.html' %}
 {% load static %} 
 {% block content %}
 
@@ -6,25 +6,32 @@
     <h2>Search articles in wikipedia</h2>
     <p>just enter the search query to obtain the results</p><b>Enter without any space</b>
     <form action="" method="post">
+        {% csrf_token %}
+        {{ form }}
         <input class="btn btn-danger" type="submit" value="Submit">
     </form><br>
-
     <div class="container">
         <div class="content-section p-0 mt-5">
+            {% if title %}
+
             <a href="" class="p-0 m-0" target="_blank">
                 <div class="custom-header">
-                    <h2>title</h2>title
-                    <h6>link</h6>
+                    <h2>{{title}}</h2>{{title}}
+                    <h6>{{link}}</h6>
                 </div>
             </a>
 
             <hr class="p-0 m-0">
             <p class="description m-5 p-5">
-                details
+                {{details}}
             </p>
             <hr>
         </div>
     </div>
+    {% else %}
+        <h2>Sorry,you did not type any word or this word was not found</h2>
+
+    {% endif %}
 
 </section>
 

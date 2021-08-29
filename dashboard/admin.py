@@ -4,4 +4,6 @@ from .models import *
 
 admin.site.register(Notes)
 admin.site.register(HomeWork)
+admin.site.register(Todo)
+
 
