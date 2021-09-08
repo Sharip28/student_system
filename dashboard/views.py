@@ -5,6 +5,7 @@ from .forms import *
 from django.views import generic
 import requests
 import wikipedia
+from django.contrib.auth.decorators import login_required
 
 
 # Create your views here.
@@ -16,7 +17,7 @@ from youtubesearchpython import VideosSearch
 def home(request):
     return render(request, 'home.html')
 
-
+@login_required
 def notes(request):
     if request.method == 'POST':
         form = NotesForm(request.POST)
@@ -30,17 +31,16 @@ def notes(request):
     context = {'notes': notes, 'form': form}
     return render(request, 'notes.html', context)
 
-
+@login_required
 def delete_note(request, pk=None):
     Notes.objects.get(id=pk).delete()
     return redirect('notes')
-
 
 class NotesDetailView(generic.DetailView):
     model = Notes
     template_name = 'notes_detail.html'
 
-
+@login_required
 def homework(request):
     if request.method == 'POST':
         form = HomeworkForm(request.POST)
@@ -75,7 +75,7 @@ def homework(request):
                'form': form}
     return render(request, 'homework.html', context)
 
-
+@login_required
 def update_homework(request, pk=None):
     homework = HomeWork.objects.get(id=pk)
     if homework.is_finished == True:
@@ -85,7 +85,7 @@ def update_homework(request, pk=None):
     homework.save()
     return redirect('homework')
 
-
+@login_required
 def delete_homework(request, pk=None):
     HomeWork.objects.get(id=pk).delete()
     return redirect('homework')
@@ -120,8 +120,7 @@ def youtube(request):
                     'form': form,
                     'results': result_list
                 }
-                return render(request, 'youtube.html', context)
-
+            return render(request, 'youtube.html', context)
         except:
             context = {
                 'form': form,
@@ -133,7 +132,7 @@ def youtube(request):
     context = {'form': form}
     return render(request, 'youtube.html', context)
 
-
+@login_required
 def todo(request):
     if request.method == 'POST':
         form = TodoForm(request.POST)
@@ -168,7 +167,7 @@ def todo(request):
     }
     return render(request, 'todo.html', context)
 
-
+@login_required
 def update_todo(request, pk=None):
     todo = Todo.objects.get(id=pk)
     if todo.is_finished == True:
@@ -178,7 +177,7 @@ def update_todo(request, pk=None):
     todo.save()
     return redirect('todo')
 
-
+@login_required
 def delete_todo(request, pk=None):
     Todo.objects.get(id=pk).delete()
     return redirect('todo')
@@ -347,8 +346,37 @@ def conversion(request):
 
 # not done yet,wanna make with email authentication
 def register(request):
-    form = UserRegistrationForm()
+    if request.method == 'POST':
+        form = UserRegistrationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            username = form.cleaned_data.get('username')
+            messages.success(request, f'Account created for {username}!')
+            return redirect('login')
+
+    else:
+        form = UserRegistrationForm()
     context = {
         'form': form
     }
     return render(request, 'register.html', context)
+
+@login_required
+def profile(request):
+    homeworks = HomeWork.objects.filter(is_finished=False, user=request.user)
+    todos = Todo.objects.filter(is_finished=False, user=request.user)
+    if len(homeworks) == 0:
+        homework_done = True
+    else:
+        homework_done = False
+    if len(todos) == 0:
+        todo_done = True
+    else:
+        todo_done = False
+    context = {
+        'homeworks': homeworks,
+        'todos': todos,
+        'homework_done': homework_done,
+        'todo_done': todo_done,
+    }
+    return render(request, 'profile.html', context)
